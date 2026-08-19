@@ -1,13 +1,16 @@
 # Schema assumptions
 
 Project: `jctjxtamsmtpdctsmrkp`. Everything below is **confirmed** against the live
-project except the two items flagged at the end. `stores`, `products`, and the two
+project except the one item flagged at the end. `stores`, `products`, and the two
 views were confirmed by reading real rows over the anon key. `profiles` was confirmed
 by creating the real owner account (Nikhil) through the admin API and reading the row
-back. `inventory`, `transactions`, and `daily_briefs` were empty (no sales or briefs
-existed yet) but PostgREST still names the exact missing column whenever a `select`
-references one that doesn't exist — so a one-column-at-a-time probe nailed those down
-without needing real rows, the same way a normal migration error would.
+back. `inventory`, `transactions`, and `daily_briefs` started out empty (no sales or
+briefs existed yet), but PostgREST still names the exact missing column whenever a
+`select` references one that doesn't exist — so a one-column-at-a-time probe nailed
+the schema down without needing real rows, the same way a normal migration error
+would. The `transactions` → `inventory` trigger's actual *behavior* (as opposed to
+just its column names) has since been confirmed too, with a real sale recorded
+through the live app — see the transactions entry below.
 
 Everything that touches the database goes through `lib/data/*.ts` and
 `lib/types/database.types.ts` — if the schema ever changes, fix it there; nothing
@@ -56,27 +59,41 @@ else should need to change.
   staff reference column is **`user_id`, not `staff_id`**, and **there is no stored
   total column** (`total_amount`/`total`/`amount`/`price` all probed as missing) —
   `unitPrice * quantity` is computed in app code (`lib/data/transactions.ts`) instead
-  of read from the row. There's also an unused `notes` text column. `type`'s actual
-  check-constraint values weren't independently probed beyond confirming the column
-  exists — `'sale'|'purchase'|'adjustment'` is carried over from the spec text as
-  the working assumption (see the trigger-contract note below).
+  of read from the row. `type`'s actual check-constraint values weren't
+  independently probed beyond confirming the column exists —
+  `'sale'|'purchase'|'adjustment'` is carried over from the spec text as the
+  working assumption (see the trigger-contract note below).
+
+  **Pending migration:** the app code now also reads/writes `customer_name`,
+  `customer_phone`, and `payment_method` (all confirmed absent — `notes` already
+  existed and needed no migration). Run this in the Supabase SQL Editor before
+  Make Purchase / History detail will work — until then, `/api/dashboard`,
+  `/api/transactions`, and `POST /api/transactions` will 500 with
+  `column transactions.customer_name does not exist` (confirmed live):
+
+  ```sql
+  ALTER TABLE transactions
+  ADD COLUMN IF NOT EXISTS customer_name TEXT,
+  ADD COLUMN IF NOT EXISTS customer_phone TEXT,
+  ADD COLUMN IF NOT EXISTS payment_method TEXT DEFAULT 'cash';
+  ```
+
+  **Migration applied and verified with a real sale** (2026-08-19): ran a live
+  Make Purchase through the actual browser UI — MATTE GLASS IP 15PRO, 1 unit,
+  Unique Wholesale, ₹199 via UPI, customer "Ramesh Patel" / phone / a note — and
+  confirmed end to end: the `transactions` insert succeeded with all four new
+  columns round-tripping correctly, the History detail sheet rendered every
+  field including a working `tel:` link, and — closing out what had been the
+  single biggest open assumption in this file — **the `transactions` →
+  `inventory` trigger's behavior is now confirmed**: Wholesale's `inventory.quantity`
+  for that product dropped from 40 to 39, exactly matching the 1-unit sale.
 - **daily_briefs**: `id, brief_date, content, generated_at`. Timestamp column is
   **`generated_at`, not `created_at`**. A real brief has been generated for
   2026-08-18 through the actual pipeline (real Claude call, real data) — see below.
 
-## The two things still open
+## The one thing still open
 
-1. **The `transactions` → `inventory` trigger's *behavior*.** Column names are
-   confirmed (above), but no sale, restock, or adjustment has actually been
-   recorded yet, so the trigger itself — decrementing on `'sale'`, incrementing on
-   `'purchase'`, applying a signed delta on `'adjustment'` — is still the working
-   assumption from the spec text, not something observed. This is the one piece
-   that actually matters for stock accuracy, and the only way to close it out is a
-   real transaction: make one real sale through the app (Search → a priced product
-   → Make Purchase) and confirm the store's quantity actually decrements by that
-   amount. Recording a transaction changes real inventory, so this needs the go-ahead
-   before it happens rather than being done unprompted.
-2. **`dead_stock` and `sales_velocity`** (views) — still genuinely empty (0 rows),
+1. **`dead_stock` and `sales_velocity`** (views) — still genuinely empty (0 rows),
    since both depend on sales history that doesn't exist yet, so there was nothing
    to probe against even column-by-column. `lib/data/brief.ts` only ever does
    `.select('*')` on these and hands the raw rows to Claude, so the app doesn't

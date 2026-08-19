@@ -3,7 +3,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Loader2, Minus, Plus, X } from 'lucide-react';
 import { formatINR } from '@/lib/utils/format';
-import type { AuthedUser, PriceType, ProductDetail, Store } from '@/lib/types/domain';
+import type { AuthedUser, PaymentMethod, PriceType, ProductDetail, Store } from '@/lib/types/domain';
+
+const PAYMENT_METHODS: { value: PaymentMethod; label: string }[] = [
+  { value: 'cash', label: 'Cash' },
+  { value: 'upi', label: 'UPI' },
+  { value: 'card', label: 'Card' },
+];
 
 interface MakePurchaseModalProps {
   product: ProductDetail;
@@ -18,6 +24,10 @@ export function MakePurchaseModal({ product, user, onClose, onSuccess }: MakePur
   const [storeId, setStoreId] = useState<string>(user.storeId ?? '');
   const [quantity, setQuantity] = useState(1);
   const [priceType, setPriceType] = useState<PriceType>('retail');
+  const [customerName, setCustomerName] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash');
+  const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -72,7 +82,16 @@ export function MakePurchaseModal({ product, user, onClose, onSuccess }: MakePur
       const res = await fetch('/api/transactions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productId: product.productId, storeId, quantity, priceType }),
+        body: JSON.stringify({
+          productId: product.productId,
+          storeId,
+          quantity,
+          priceType,
+          customerName: customerName.trim() || undefined,
+          customerPhone: customerPhone.trim() || undefined,
+          paymentMethod,
+          notes: notes.trim() || undefined,
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Could not record the sale.');
@@ -182,6 +201,55 @@ export function MakePurchaseModal({ product, user, onClose, onSuccess }: MakePur
             {formatINR(unitPrice)} × {quantity}
           </span>
           <span className="font-mono text-lg font-bold text-text">{formatINR(total)}</span>
+        </div>
+
+        <div className="mt-4 space-y-3">
+          <input
+            type="text"
+            value={customerName}
+            onChange={(e) => setCustomerName(e.target.value)}
+            disabled={submitting}
+            placeholder="Customer name (optional)"
+            className="h-tap w-full rounded-xl border border-elevated bg-background px-4 text-text placeholder:text-text-muted focus:border-primary focus:outline-none"
+          />
+          <input
+            type="tel"
+            inputMode="numeric"
+            value={customerPhone}
+            onChange={(e) => setCustomerPhone(e.target.value.replace(/[^\d+\-\s]/g, ''))}
+            disabled={submitting}
+            placeholder="Phone number (optional)"
+            className="h-tap w-full rounded-xl border border-elevated bg-background px-4 text-text placeholder:text-text-muted focus:border-primary focus:outline-none"
+          />
+
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-text-muted">Payment Method</label>
+            <div className="grid grid-cols-3 gap-2">
+              {PAYMENT_METHODS.map(({ value, label }) => (
+                <button
+                  key={value}
+                  onClick={() => setPaymentMethod(value)}
+                  disabled={submitting}
+                  className={`h-tap rounded-xl border text-sm font-medium transition ${
+                    paymentMethod === value
+                      ? 'border-primary bg-primary/15 text-primary'
+                      : 'border-elevated text-text-muted'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <input
+            type="text"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            disabled={submitting}
+            placeholder="Notes (optional)"
+            className="h-tap w-full rounded-xl border border-elevated bg-background px-4 text-text placeholder:text-text-muted focus:border-primary focus:outline-none"
+          />
         </div>
 
         {error && <p className="mt-3 rounded-lg bg-danger/10 px-3 py-2 text-sm text-danger">{error}</p>}

@@ -5,7 +5,9 @@ import { getProductDetailById } from '@/lib/data/products';
 import { InsufficientStockError, recordSale } from '@/lib/data/transactions';
 import { listTransactions, type TransactionFilters } from '@/lib/data/transactions';
 import { Errors } from '@/lib/utils/api';
-import type { PriceType } from '@/lib/types/domain';
+import type { PaymentMethod, PriceType } from '@/lib/types/domain';
+
+const VALID_PAYMENT_METHODS: PaymentMethod[] = ['cash', 'upi', 'card'];
 
 export async function GET(request: NextRequest) {
   const user = await getAuthedUser();
@@ -52,6 +54,11 @@ export async function POST(request: NextRequest) {
     return Errors.badRequest('No store selected.');
   }
 
+  const paymentMethod: PaymentMethod = VALID_PAYMENT_METHODS.includes(body.paymentMethod) ? body.paymentMethod : 'cash';
+  const customerName = typeof body.customerName === 'string' ? body.customerName : null;
+  const customerPhone = typeof body.customerPhone === 'string' ? body.customerPhone : null;
+  const notes = typeof body.notes === 'string' ? body.notes : null;
+
   try {
     const supabase = createClient();
     const product = await getProductDetailById(supabase, body.productId, true);
@@ -69,6 +76,10 @@ export async function POST(request: NextRequest) {
       quantity: body.quantity,
       priceType,
       unitPrice,
+      customerName,
+      customerPhone,
+      paymentMethod,
+      notes,
     });
 
     return NextResponse.json({ remainingQuantity: remaining });

@@ -1,5 +1,5 @@
 import type { DB } from './db';
-import type { PriceType, Transaction, UserRole } from '@/lib/types/domain';
+import type { PaymentMethod, PriceType, Transaction, UserRole } from '@/lib/types/domain';
 
 export class InsufficientStockError extends Error {
   constructor(public available: number) {
@@ -15,6 +15,10 @@ export interface RecordSaleInput {
   quantity: number;
   priceType: PriceType;
   unitPrice: number;
+  customerName?: string | null;
+  customerPhone?: string | null;
+  paymentMethod?: PaymentMethod;
+  notes?: string | null;
 }
 
 /** Inserts a 'sale' transaction; the DB trigger decrements inventory. Returns the resulting quantity at the store. */
@@ -40,6 +44,10 @@ export async function recordSale(supabase: DB, input: RecordSaleInput): Promise<
     quantity: input.quantity,
     price_type: input.priceType,
     unit_price: input.unitPrice,
+    customer_name: input.customerName?.trim() || null,
+    customer_phone: input.customerPhone?.trim() || null,
+    payment_method: input.paymentMethod ?? 'cash',
+    notes: input.notes?.trim() || null,
   });
 
   if (error) throw error;
@@ -120,6 +128,10 @@ interface RawTransactionRow {
   quantity: number;
   price_type: PriceType | null;
   unit_price: number | null;
+  customer_name: string | null;
+  customer_phone: string | null;
+  payment_method: PaymentMethod | null;
+  notes: string | null;
   created_at: string;
   products: { model: string | null; sku_code: string } | null;
   stores: { name: string } | null;
@@ -128,7 +140,7 @@ interface RawTransactionRow {
 
 /** No stored total column — `unitPrice * quantity` is computed below instead of read from the row. */
 const TRANSACTION_SELECT =
-  'id, product_id, store_id, user_id, type, quantity, price_type, unit_price, created_at, products(model, sku_code), stores(name), profiles(full_name)';
+  'id, product_id, store_id, user_id, type, quantity, price_type, unit_price, customer_name, customer_phone, payment_method, notes, created_at, products(model, sku_code), stores(name), profiles(full_name)';
 
 export async function listTransactions(
   supabase: DB,
@@ -170,6 +182,10 @@ export async function listTransactions(
     priceType: row.price_type,
     unitPrice: row.unit_price,
     totalAmount: row.unit_price !== null ? row.unit_price * row.quantity : null,
+    customerName: row.customer_name,
+    customerPhone: row.customer_phone,
+    paymentMethod: row.payment_method,
+    notes: row.notes,
     createdAt: row.created_at,
   }));
 }

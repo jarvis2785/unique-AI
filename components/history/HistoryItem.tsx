@@ -7,9 +7,20 @@ const TYPE_LABEL: Record<Transaction['type'], string> = {
   adjustment: 'Adjusted',
 };
 
-export function HistoryItem({ transaction, viewerRole }: { transaction: Transaction; viewerRole: UserRole }) {
+export function HistoryItem({
+  transaction,
+  viewerRole,
+  onOpen,
+}: {
+  transaction: Transaction;
+  viewerRole: UserRole;
+  onOpen?: (transaction: Transaction) => void;
+}) {
   return (
-    <div className="rounded-xl border border-elevated bg-surface px-4 py-3.5">
+    <button
+      onClick={() => onOpen?.(transaction)}
+      className="w-full rounded-xl border border-elevated bg-surface px-4 py-3.5 text-left transition active:scale-[0.99] active:bg-elevated"
+    >
       <p className="font-semibold text-text">{transaction.productName}</p>
       <p className="mt-0.5 text-sm text-text-muted">
         {TYPE_LABEL[transaction.type]} {Math.abs(transaction.quantity)} units — {transaction.storeName}
@@ -29,6 +40,6 @@ export function HistoryItem({ transaction, viewerRole }: { transaction: Transact
           </>
         )}
       </div>
-    </div>
+    </button>
   );
 }

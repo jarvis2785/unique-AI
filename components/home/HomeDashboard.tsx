@@ -6,6 +6,7 @@ import { StoreCard } from './StoreCard';
 import { BriefCard } from './BriefCard';
 import { BriefDetail } from './BriefDetail';
 import { HistoryItem } from '@/components/history/HistoryItem';
+import { TransactionDetailSheet } from '@/components/history/TransactionDetailSheet';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useToast } from '@/components/ui/Toast';
@@ -13,7 +14,7 @@ import { useAuth } from '@/lib/hooks/useAuth';
 import { useRealtimeTransactions } from '@/lib/hooks/useRealtimeTransactions';
 import { formatFullDate, formatINR } from '@/lib/utils/format';
 import type { DashboardData } from '@/lib/data/dashboard';
-import type { DailyBrief } from '@/lib/types/domain';
+import type { DailyBrief, Transaction } from '@/lib/types/domain';
 
 export function HomeDashboard({ fullName }: { fullName: string }) {
   const { signOut } = useAuth();
@@ -24,6 +25,7 @@ export function HomeDashboard({ fullName }: { fullName: string }) {
   const [briefOpen, setBriefOpen] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
 
   const loadDashboard = useCallback(() => {
     fetch('/api/dashboard')
@@ -128,7 +130,7 @@ export function HomeDashboard({ fullName }: { fullName: string }) {
             ) : (
               <div className="space-y-2">
                 {data.recentTransactions.map((t) => (
-                  <HistoryItem key={t.id} transaction={t} viewerRole="owner" />
+                  <HistoryItem key={t.id} transaction={t} viewerRole="owner" onOpen={setSelectedTransaction} />
                 ))}
               </div>
             )}
@@ -137,6 +139,9 @@ export function HomeDashboard({ fullName }: { fullName: string }) {
       )}
 
       {briefOpen && brief && <BriefDetail brief={brief} onClose={() => setBriefOpen(false)} />}
+      {selectedTransaction && (
+        <TransactionDetailSheet transaction={selectedTransaction} onClose={() => setSelectedTransaction(null)} />
+      )}
     </div>
   );
 }

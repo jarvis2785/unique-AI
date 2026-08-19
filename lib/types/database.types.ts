@@ -21,6 +21,7 @@ export type TransactionType = 'sale' | 'purchase' | 'adjustment';
 export type PriceType = 'retail' | 'wholesale';
 export type StoreType = 'retail' | 'wholesale' | 'both';
 export type StockStatusValue = 'in_stock' | 'low_stock' | 'out_of_stock';
+export type PaymentMethod = 'cash' | 'upi' | 'card';
 
 /**
  * postgrest-js requires each Table/View to declare its FK relationships so
@@ -145,8 +146,10 @@ export interface Database {
        * missing column when a select references one, so this needed no
        * actual rows to verify). Staff reference is `user_id`, not
        * `staff_id`, and there is no stored total — `unit_price * quantity`
-       * is computed in app code. There's also a `notes` text column, unused
-       * by the app so far.
+       * is computed in app code. `customer_name`, `customer_phone`,
+       * `payment_method`, and `notes` are optional point-of-sale metadata
+       * added for the Make Purchase modal — apply the migration in
+       * SCHEMA_ASSUMPTIONS.md before relying on them.
        */
       transactions: {
         Row: {
@@ -158,6 +161,9 @@ export interface Database {
           quantity: number;
           price_type: PriceType | null;
           unit_price: number | null;
+          customer_name: string | null;
+          customer_phone: string | null;
+          payment_method: PaymentMethod | null;
           notes: string | null;
           created_at: string;
         };
@@ -170,6 +176,9 @@ export interface Database {
           quantity: number;
           price_type?: PriceType | null;
           unit_price?: number | null;
+          customer_name?: string | null;
+          customer_phone?: string | null;
+          payment_method?: PaymentMethod | null;
           notes?: string | null;
           created_at?: string;
         };

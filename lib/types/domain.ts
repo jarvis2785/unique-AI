@@ -1,6 +1,6 @@
-import type { PriceType, StoreType, TransactionType, UserRole } from './database.types';
+import type { PaymentMethod, PriceType, StoreType, TransactionType, UserRole } from './database.types';
 
-export type { UserRole, TransactionType, PriceType, StoreType };
+export type { UserRole, TransactionType, PriceType, StoreType, PaymentMethod };
 
 export type StockStatus = 'in-stock' | 'low-stock' | 'out-of-stock';
 
@@ -57,6 +57,10 @@ export interface Transaction {
   priceType: PriceType | null;
   unitPrice: number | null;
   totalAmount: number | null;
+  customerName: string | null;
+  customerPhone: string | null;
+  paymentMethod: PaymentMethod | null;
+  notes: string | null;
   createdAt: string;
 }
 

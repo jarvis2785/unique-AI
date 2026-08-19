@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Receipt } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { HistoryItem } from '@/components/history/HistoryItem';
+import { TransactionDetailSheet } from '@/components/history/TransactionDetailSheet';
 import { HistoryFilters, EMPTY_FILTERS, type HistoryFilterState } from '@/components/history/HistoryFilters';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -16,6 +17,7 @@ export default function HistoryPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Transaction | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -66,11 +68,13 @@ export default function HistoryPage() {
         {!loading && !error && transactions.length > 0 && (
           <div className="space-y-2">
             {transactions.map((t) => (
-              <HistoryItem key={t.id} transaction={t} viewerRole={user.role} />
+              <HistoryItem key={t.id} transaction={t} viewerRole={user.role} onOpen={setSelected} />
             ))}
           </div>
         )}
       </div>
+
+      {selected && <TransactionDetailSheet transaction={selected} onClose={() => setSelected(null)} />}
     </div>
   );
 }

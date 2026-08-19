@@ -116,16 +116,16 @@ export default function ImportPage() {
 
   return (
     <div>
-      <div className="sticky top-0 z-20 border-b border-elevated bg-background/95 px-4 pb-3 pt-safe-top backdrop-blur safe-top">
-        <div className="flex items-center gap-3 pt-3">
-          <Link href="/manage" className="flex h-10 w-10 items-center justify-center rounded-full text-text-muted active:bg-elevated">
+      <div className="sticky top-0 z-20 border-b border-white/10 bg-background/95 px-5 pb-3 pt-safe-top backdrop-blur safe-top">
+        <div className="flex items-center gap-3 pt-4">
+          <Link href="/manage" className="flex h-10 w-10 items-center justify-center rounded-full text-text-muted transition active:scale-[0.98] active:bg-elevated">
             <ArrowLeft className="h-5 w-5" />
           </Link>
-          <h1 className="text-lg font-bold text-text">Import CSV</h1>
+          <h1 className="text-page-title text-[20px]">Import CSV</h1>
         </div>
       </div>
 
-      <div className="px-4 py-4">
+      <div className="px-5 py-4">
         {stage === 'upload' && (
           <div>
             <EmptyState
@@ -160,7 +160,7 @@ export default function ImportPage() {
                   <select
                     value={mapping[col] ?? ''}
                     onChange={(e) => setMapping((m) => ({ ...m, [col]: e.target.value || undefined }))}
-                    className="h-9 rounded-lg border border-elevated bg-background px-2 text-sm text-text"
+                    className="h-9 rounded-lg border border-white/10 bg-background px-2 text-sm text-text"
                   >
                     <option value="">— none —</option>
                     {headers.map((h) => (
@@ -176,7 +176,7 @@ export default function ImportPage() {
             <p className="mb-2 mt-5 text-xs font-semibold uppercase tracking-wide text-text-muted">
               Preview (first 10 rows)
             </p>
-            <div className="overflow-x-auto rounded-lg border border-elevated">
+            <div className="overflow-x-auto rounded-lg border border-white/10">
               <table className="w-full text-left text-xs">
                 <thead className="bg-surface text-text-muted">
                   <tr>
@@ -191,7 +191,7 @@ export default function ImportPage() {
                   {rows.slice(0, 10).map((row, i) => {
                     const mapped = mapRow(row, headers, mapping);
                     return (
-                      <tr key={i} className="border-t border-elevated">
+                      <tr key={i} className="border-t border-white/10">
                         <td className="whitespace-nowrap px-3 py-2 text-text">{mapped?.skuCode ?? '—'}</td>
                         <td className="whitespace-nowrap px-3 py-2 text-text">{mapped?.name ?? '—'}</td>
                         <td className="whitespace-nowrap px-3 py-2 font-mono text-text">{mapped?.retailPrice ?? '—'}</td>
@@ -210,7 +210,7 @@ export default function ImportPage() {
             </p>
 
             <div className="mt-4 flex gap-2">
-              <button onClick={reset} className="h-tap flex-1 rounded-xl border border-elevated text-sm font-semibold text-text">
+              <button onClick={reset} className="h-tap flex-1 rounded-xl border border-white/10 text-sm font-semibold text-text">
                 Cancel
               </button>
               <button

@@ -11,16 +11,16 @@ export function BriefDetail({ brief, onClose }: { brief: DailyBrief; onClose: ()
     <div className="fixed inset-0 z-50 flex items-end justify-center">
       <div className="absolute inset-0 bg-black/60 animate-fade-in" onClick={onClose} />
 
-      <div className="relative z-10 max-h-[88vh] w-full max-w-lg overflow-y-auto rounded-t-3xl bg-surface pb-safe-bottom animate-slide-up">
-        <div className="sticky top-0 flex items-center justify-between border-b border-elevated bg-surface px-5 py-4">
+      <div className="card-surface relative z-10 max-h-[88vh] w-full max-w-lg overflow-y-auto rounded-t-[24px] pb-safe-bottom animate-slide-up-panel">
+        <div className="card-surface sticky top-0 flex items-center justify-between px-5 py-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">Today&apos;s Brief</p>
-            <p className="text-sm text-text-muted">Generated {formatDateTime(brief.createdAt)}</p>
+            <p className="text-section-header">Today&apos;s Brief</p>
+            <p className="text-secondary-body mt-0.5">Generated {formatDateTime(brief.createdAt)}</p>
           </div>
           <button
             onClick={onClose}
             aria-label="Close"
-            className="flex h-tap w-tap items-center justify-center rounded-full text-text-muted"
+            className="flex h-tap w-tap items-center justify-center rounded-full text-text-muted transition active:scale-[0.98]"
           >
             <X className="h-5 w-5" />
           </button>

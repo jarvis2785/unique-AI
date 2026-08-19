@@ -5,13 +5,22 @@ export function StoreCard({ store }: { store: StoreSummary }) {
   const hasLowStock = store.lowStockCount > 0;
 
   return (
-    <div className="min-w-[150px] flex-1 rounded-xl border border-elevated bg-surface px-4 py-3.5">
-      <p className="truncate text-sm font-semibold text-text">{store.storeName}</p>
-      <p className="mt-1 font-mono text-xs text-text-muted">{store.skuCount} SKUs</p>
-      <div className={`mt-2 flex items-center gap-1.5 text-xs font-medium ${hasLowStock ? 'text-warning' : 'text-success'}`}>
-        {hasLowStock ? <AlertTriangle className="h-3.5 w-3.5" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
-        {store.lowStockCount} low
+    <div className="card-surface overflow-hidden rounded-2xl">
+      <div className="flex items-center justify-between px-4 py-3.5">
+        <div className="min-w-0">
+          <p className="text-product-name">{store.storeName}</p>
+          <p className="text-secondary-body mt-0.5">{store.skuCount} SKUs</p>
+        </div>
+        <div
+          className={`flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-badge ${
+            hasLowStock ? 'bg-warning/15 text-warning' : 'bg-success/15 text-success'
+          }`}
+        >
+          {hasLowStock ? <AlertTriangle className="h-3.5 w-3.5" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
+          {store.lowStockCount} LOW
+        </div>
       </div>
+      <div className={`h-[3px] w-full ${hasLowStock ? 'bg-warning' : 'bg-success'}`} />
     </div>
   );
 }

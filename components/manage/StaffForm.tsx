@@ -10,7 +10,7 @@ interface StaffFormProps {
 }
 
 const FIELD_CLASS =
-  'h-tap w-full rounded-xl border border-elevated bg-background px-3.5 text-text placeholder:text-text-muted focus:border-primary focus:outline-none';
+  'h-tap w-full rounded-xl border border-white/10 bg-background px-3.5 text-text placeholder:text-text-muted focus:border-primary focus:outline-none';
 
 export function StaffForm({ onClose, onSaved }: StaffFormProps) {
   const [stores, setStores] = useState<Store[]>([]);
@@ -72,10 +72,10 @@ export function StaffForm({ onClose, onSaved }: StaffFormProps) {
     <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
       <div className="absolute inset-0 bg-black/60 animate-fade-in" onClick={submitting ? undefined : onClose} />
 
-      <div className="relative z-10 w-full max-w-sm rounded-t-3xl bg-surface p-5 pb-safe-bottom sm:rounded-3xl animate-slide-up">
+      <div className="card-surface relative z-10 w-full max-w-sm rounded-t-[24px] p-5 pb-safe-bottom sm:rounded-[24px] animate-slide-up-panel">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-bold text-text">Add Staff Account</h2>
-          <button onClick={onClose} disabled={submitting} className="flex h-tap w-tap items-center justify-center rounded-full text-text-muted">
+          <h2 className="text-product-name text-[18px]">Add Staff Account</h2>
+          <button onClick={onClose} disabled={submitting} className="flex h-tap w-tap items-center justify-center rounded-full text-text-muted transition active:scale-[0.98]">
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -127,7 +127,7 @@ export function StaffForm({ onClose, onSaved }: StaffFormProps) {
         <button
           onClick={handleSubmit}
           disabled={submitting}
-          className="mt-5 flex h-tap w-full items-center justify-center gap-2 rounded-xl bg-primary text-base font-semibold text-white disabled:opacity-60"
+          className="btn-gradient mt-5 flex h-14 w-full items-center justify-center gap-2 rounded-2xl text-base font-bold text-white transition active:scale-[0.98] disabled:opacity-60"
         >
           {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Create Account'}
         </button>

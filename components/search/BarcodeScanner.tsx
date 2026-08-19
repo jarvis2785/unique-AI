@@ -102,7 +102,7 @@ export function BarcodeScanner({ onDetected, onClose }: BarcodeScannerProps) {
         <button
           onClick={onClose}
           aria-label="Close scanner"
-          className="flex h-tap w-tap items-center justify-center rounded-full bg-white/10"
+          className="flex h-tap w-tap items-center justify-center rounded-full bg-white/10 transition active:scale-[0.98]"
         >
           <X className="h-6 w-6 text-white" />
         </button>

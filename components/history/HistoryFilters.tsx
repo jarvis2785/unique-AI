@@ -59,7 +59,7 @@ export function HistoryFilters({
       setProductOptions([]);
       return;
     }
-    fetch(`/api/search?q=${encodeURIComponent(trimmed)}`)
+    fetch(`/api/search?q=${encodeURIComponent(trimmed)}&fast=1`)
       .then((res) => res.json())
       .then((data) => setProductOptions(data.results ?? []))
       .catch(() => {});
@@ -74,7 +74,7 @@ export function HistoryFilters({
     <div className="mb-3">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex h-10 items-center gap-1.5 rounded-full border border-elevated px-3.5 text-sm text-text-muted"
+        className="flex h-10 items-center gap-1.5 rounded-full border border-white/10 px-3.5 text-sm text-text-muted transition active:scale-[0.98]"
       >
         <Filter className="h-4 w-4" />
         Filters
@@ -86,13 +86,13 @@ export function HistoryFilters({
       </button>
 
       {open && (
-        <div className="mt-3 space-y-3 rounded-xl border border-elevated bg-surface p-4">
+        <div className="mt-3 space-y-3 rounded-xl border border-white/10 bg-surface p-4">
           <div>
             <label className="mb-1 block text-xs font-medium text-text-muted">Store</label>
             <select
               value={filters.storeId}
               onChange={(e) => onChange({ ...filters, storeId: e.target.value })}
-              className="h-11 w-full rounded-lg border border-elevated bg-background px-3 text-sm text-text"
+              className="h-11 w-full rounded-lg border border-white/10 bg-background px-3 text-sm text-text"
             >
               <option value="">All stores</option>
               {stores.map((s) => (
@@ -108,7 +108,7 @@ export function HistoryFilters({
             <select
               value={filters.staffId}
               onChange={(e) => onChange({ ...filters, staffId: e.target.value })}
-              className="h-11 w-full rounded-lg border border-elevated bg-background px-3 text-sm text-text"
+              className="h-11 w-full rounded-lg border border-white/10 bg-background px-3 text-sm text-text"
             >
               <option value="">All staff</option>
               {staff.map((s) => (
@@ -122,7 +122,7 @@ export function HistoryFilters({
           <div>
             <label className="mb-1 block text-xs font-medium text-text-muted">Product</label>
             {filters.productId ? (
-              <div className="flex h-11 items-center justify-between rounded-lg border border-elevated bg-background px-3 text-sm text-text">
+              <div className="flex h-11 items-center justify-between rounded-lg border border-white/10 bg-background px-3 text-sm text-text">
                 {filters.productName}
                 <button
                   onClick={() => {
@@ -139,10 +139,10 @@ export function HistoryFilters({
                   value={productQuery}
                   onChange={(e) => setProductQuery(e.target.value)}
                   placeholder="Search product…"
-                  className="h-11 w-full rounded-lg border border-elevated bg-background px-3 text-sm text-text placeholder:text-text-muted"
+                  className="h-11 w-full rounded-lg border border-white/10 bg-background px-3 text-sm text-text placeholder:text-text-muted"
                 />
                 {productOptions.length > 0 && (
-                  <div className="absolute z-10 mt-1 max-h-48 w-full overflow-y-auto rounded-lg border border-elevated bg-surface shadow-lg">
+                  <div className="absolute z-10 mt-1 max-h-48 w-full overflow-y-auto rounded-lg border border-white/10 bg-surface shadow-lg">
                     {productOptions.map((p) => (
                       <button
                         key={p.productId}
@@ -168,7 +168,7 @@ export function HistoryFilters({
                 type="date"
                 value={filters.dateFrom}
                 onChange={(e) => onChange({ ...filters, dateFrom: e.target.value })}
-                className="h-11 w-full rounded-lg border border-elevated bg-background px-2 text-sm text-text"
+                className="h-11 w-full rounded-lg border border-white/10 bg-background px-2 text-sm text-text"
               />
             </div>
             <div>
@@ -177,7 +177,7 @@ export function HistoryFilters({
                 type="date"
                 value={filters.dateTo}
                 onChange={(e) => onChange({ ...filters, dateTo: e.target.value })}
-                className="h-11 w-full rounded-lg border border-elevated bg-background px-2 text-sm text-text"
+                className="h-11 w-full rounded-lg border border-white/10 bg-background px-2 text-sm text-text"
               />
             </div>
           </div>

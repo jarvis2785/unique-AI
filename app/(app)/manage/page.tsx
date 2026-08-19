@@ -26,19 +26,19 @@ export default async function ManagePage() {
   return (
     <div>
       <Header title="Manage" />
-      <div className="space-y-2.5 px-4 py-4">
+      <div className="space-y-3 px-5 py-4">
         {sections.map((section) => (
           <Link
             key={section.href}
             href={section.href}
-            className="flex items-center gap-3.5 rounded-xl border border-elevated bg-surface px-4 py-4 active:bg-elevated"
+            className="card-surface flex items-center gap-4 rounded-2xl px-5 py-5 transition active:scale-[0.98] active:bg-elevated/40"
           >
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-primary">
-              <section.icon className="h-5 w-5" />
+            <div className="icon-gradient flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-primary">
+              <section.icon className="h-6 w-6" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="font-semibold text-text">{section.title}</p>
-              <p className="truncate text-sm text-text-muted">{section.description}</p>
+              <p className="text-product-name text-[17px]">{section.title}</p>
+              <p className="text-secondary-body mt-1">{section.description}</p>
             </div>
             <ChevronRight className="h-5 w-5 shrink-0 text-text-muted" />
           </Link>

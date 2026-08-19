@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Check, Loader2, SlidersHorizontal } from 'lucide-react';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { SkeletonCardList } from '@/components/ui/Skeleton';
 import { useToast } from '@/components/ui/Toast';
 import { useDebounce } from '@/lib/hooks/useDebounce';
 import type { ProductDetail, SearchResultProduct } from '@/lib/types/domain';
@@ -25,7 +25,7 @@ export default function StockAdjustmentPage() {
       setOptions([]);
       return;
     }
-    fetch(`/api/search?q=${encodeURIComponent(trimmed)}`)
+    fetch(`/api/search?q=${encodeURIComponent(trimmed)}&fast=1`)
       .then((res) => res.json())
       .then((data) => setOptions(data.results ?? []))
       .catch(() => setOptions([]));
@@ -85,22 +85,22 @@ export default function StockAdjustmentPage() {
 
   return (
     <div>
-      <div className="sticky top-0 z-20 border-b border-elevated bg-background/95 px-4 pb-3 pt-safe-top backdrop-blur safe-top">
-        <div className="flex items-center gap-3 pt-3">
-          <Link href="/manage" className="flex h-10 w-10 items-center justify-center rounded-full text-text-muted active:bg-elevated">
+      <div className="sticky top-0 z-20 border-b border-white/10 bg-background/95 px-5 pb-3 pt-safe-top backdrop-blur safe-top">
+        <div className="flex items-center gap-3 pt-4">
+          <Link href="/manage" className="flex h-10 w-10 items-center justify-center rounded-full text-text-muted transition active:scale-[0.98] active:bg-elevated">
             <ArrowLeft className="h-5 w-5" />
           </Link>
-          <h1 className="text-lg font-bold text-text">Stock Adjustment</h1>
+          <h1 className="text-page-title text-[20px]">Stock Adjustment</h1>
         </div>
         <div className="relative mt-3">
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Find a product to correct…"
-            className="h-11 w-full rounded-xl border border-elevated bg-surface px-3.5 text-sm text-text placeholder:text-text-muted focus:border-primary focus:outline-none"
+            className="h-11 w-full rounded-xl border border-white/10 bg-surface px-3.5 text-sm text-text placeholder:text-text-muted focus:border-primary focus:outline-none"
           />
           {options.length > 0 && (
-            <div className="absolute z-10 mt-1 max-h-64 w-full overflow-y-auto rounded-xl border border-elevated bg-surface shadow-lg">
+            <div className="card-surface absolute z-10 mt-1 max-h-64 w-full overflow-y-auto rounded-xl shadow-lg">
               {options.map((p) => (
                 <button
                   key={p.productId}
@@ -115,8 +115,8 @@ export default function StockAdjustmentPage() {
         </div>
       </div>
 
-      <div className="px-4 py-4">
-        {loadingDetail && <LoadingSpinner label="Loading…" />}
+      <div className="px-5 py-4">
+        {loadingDetail && <SkeletonCardList count={3} />}
 
         {!loadingDetail && !selected && (
           <EmptyState
@@ -128,24 +128,24 @@ export default function StockAdjustmentPage() {
 
         {!loadingDetail && selected && (
           <div>
-            <p className="font-semibold text-text">{selected.name}</p>
-            <p className="mb-4 text-sm text-text-muted">{selected.skuCode}</p>
+            <p className="text-product-name break-words">{selected.name}</p>
+            <p className="text-secondary-body mb-4 mt-0.5">{selected.skuCode}</p>
 
             <div className="space-y-2.5">
               {selected.storeStock.map((store) => (
-                <div key={store.storeId} className="flex items-center gap-3 rounded-xl border border-elevated bg-surface px-4 py-3">
+                <div key={store.storeId} className="card-surface flex items-center gap-3 rounded-2xl px-4 py-3">
                   <span className="flex-1 text-sm text-text">{store.storeName}</span>
                   <input
                     type="number"
                     inputMode="numeric"
                     value={draft[store.storeId] ?? ''}
                     onChange={(e) => setDraft((d) => ({ ...d, [store.storeId]: e.target.value }))}
-                    className="h-10 w-20 rounded-lg border border-elevated bg-background text-center font-mono text-text focus:border-primary focus:outline-none"
+                    className="h-10 w-20 rounded-lg border border-white/10 bg-background text-center font-mono text-text focus:border-primary focus:outline-none"
                   />
                   <button
                     onClick={() => saveStore(store.storeId)}
                     disabled={savingStoreId === store.storeId || draft[store.storeId] === String(store.quantity)}
-                    className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-white disabled:opacity-40"
+                    className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-white transition active:scale-[0.98] disabled:opacity-40"
                   >
                     {savingStoreId === store.storeId ? (
                       <Loader2 className="h-4 w-4 animate-spin" />

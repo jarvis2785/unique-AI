@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Plus, Users } from 'lucide-react';
 import { StaffForm } from '@/components/manage/StaffForm';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { SkeletonCardList } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useToast } from '@/components/ui/Toast';
 import type { StaffRow } from '@/lib/data/staff';
@@ -52,44 +52,44 @@ export default function StaffAccountsPage() {
 
   return (
     <div>
-      <div className="sticky top-0 z-20 border-b border-elevated bg-background/95 px-4 pb-3 pt-safe-top backdrop-blur safe-top">
-        <div className="flex items-center gap-3 pt-3">
-          <Link href="/manage" className="flex h-10 w-10 items-center justify-center rounded-full text-text-muted active:bg-elevated">
+      <div className="sticky top-0 z-20 border-b border-white/10 bg-background/95 px-5 pb-3 pt-safe-top backdrop-blur safe-top">
+        <div className="flex items-center gap-3 pt-4">
+          <Link href="/manage" className="flex h-10 w-10 items-center justify-center rounded-full text-text-muted transition active:scale-[0.98] active:bg-elevated">
             <ArrowLeft className="h-5 w-5" />
           </Link>
-          <h1 className="text-lg font-bold text-text">Staff Accounts</h1>
+          <h1 className="text-page-title text-[20px]">Staff Accounts</h1>
           <button
             onClick={() => setFormOpen(true)}
-            className="ml-auto flex h-10 items-center gap-1.5 rounded-full bg-primary px-3.5 text-sm font-semibold text-white"
+            className="ml-auto flex h-10 items-center gap-1.5 rounded-full bg-primary px-3.5 text-sm font-semibold text-white transition active:scale-[0.98]"
           >
             <Plus className="h-4 w-4" /> Add
           </button>
         </div>
       </div>
 
-      <div className="px-4 py-4">
-        {loading && <LoadingSpinner label="Loading staff…" />}
+      <div className="px-5 py-4">
+        {loading && <SkeletonCardList count={5} />}
 
         {!loading && staff.length === 0 && <EmptyState icon={Users} title="No staff accounts yet" />}
 
         {!loading && staff.length > 0 && (
-          <div className="space-y-2">
+          <div className="space-y-2.5">
             {staff.map((member) => (
-              <div key={member.id} className="flex items-center gap-3 rounded-xl border border-elevated bg-surface px-4 py-3.5">
+              <div key={member.id} className="card-surface flex items-center gap-3 rounded-2xl px-4 py-3.5">
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-semibold text-text">{member.fullName}</p>
-                  <p className="mt-0.5 text-sm text-text-muted">
+                  <p className="text-product-name break-words">{member.fullName}</p>
+                  <p className="text-secondary-body mt-0.5">
                     <span className="capitalize">{member.role}</span>
                     {member.storeName ? ` — ${member.storeName}` : ''}
                   </p>
                 </div>
                 {member.role === 'owner' ? (
-                  <span className="rounded-full bg-primary/15 px-3 py-1 text-xs font-medium text-primary">Owner</span>
+                  <span className="text-badge rounded-full bg-primary/15 px-3 py-1.5 text-primary">Owner</span>
                 ) : (
                   <button
                     onClick={() => toggleActive(member)}
                     disabled={togglingId === member.id}
-                    className={`rounded-full px-3 py-1.5 text-xs font-medium ${
+                    className={`text-badge rounded-full px-3 py-1.5 transition active:scale-[0.98] ${
                       member.isActive ? 'bg-danger/10 text-danger' : 'bg-success/10 text-success'
                     }`}
                   >

@@ -1,13 +1,13 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { AlertTriangle, LogOut, Receipt } from 'lucide-react';
+import { AlertTriangle, LogOut, PackageX, Receipt } from 'lucide-react';
 import { StoreCard } from './StoreCard';
 import { BriefCard } from './BriefCard';
 import { BriefDetail } from './BriefDetail';
 import { HistoryItem } from '@/components/history/HistoryItem';
 import { TransactionDetailSheet } from '@/components/history/TransactionDetailSheet';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { SkeletonCardList, Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useToast } from '@/components/ui/Toast';
 import { useAuth } from '@/lib/hooks/useAuth';
@@ -15,6 +15,15 @@ import { useRealtimeTransactions } from '@/lib/hooks/useRealtimeTransactions';
 import { formatFullDate, formatINR } from '@/lib/utils/format';
 import type { DashboardData } from '@/lib/data/dashboard';
 import type { DailyBrief, Transaction } from '@/lib/types/domain';
+
+function useClock() {
+  const [time, setTime] = useState(() => new Date());
+  useEffect(() => {
+    const timer = setInterval(() => setTime(new Date()), 30_000);
+    return () => clearInterval(timer);
+  }, []);
+  return time.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true });
+}
 
 export function HomeDashboard({ fullName }: { fullName: string }) {
   const { signOut } = useAuth();
@@ -26,6 +35,7 @@ export function HomeDashboard({ fullName }: { fullName: string }) {
   const [generating, setGenerating] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+  const time = useClock();
 
   const loadDashboard = useCallback(() => {
     fetch('/api/dashboard')
@@ -69,50 +79,79 @@ export function HomeDashboard({ fullName }: { fullName: string }) {
 
   const firstName = fullName.split(' ')[0];
 
+  const alertParts: string[] = [];
+  if (data && data.alerts.lowStockCount > 0) alertParts.push(`${data.alerts.lowStockCount} low stock`);
+  if (data && data.alerts.deadStockCount > 0) alertParts.push(`${data.alerts.deadStockCount} dead stock`);
+
   return (
     <div>
-      <div className="px-4 pb-3 pt-safe-top safe-top">
-        <div className="flex items-start justify-between pt-4">
+      <div className="px-5 pb-4 pt-safe-top safe-top">
+        <div className="flex items-start justify-between pt-5">
           <div>
-            <h1 className="text-xl font-bold text-text">Good morning, {firstName}</h1>
-            <p className="text-sm text-text-muted">{formatFullDate()}</p>
+            <h1 className="text-page-title">Good morning, {firstName}</h1>
+            <p className="text-secondary-body mt-1">
+              {formatFullDate()} &middot; {time}
+            </p>
           </div>
           <button
             onClick={signOut}
             aria-label="Sign out"
-            className="flex h-10 w-10 items-center justify-center rounded-full text-text-muted active:bg-elevated"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-text-muted transition active:scale-[0.98] active:bg-elevated"
           >
             <LogOut className="h-5 w-5" />
           </button>
         </div>
       </div>
 
-      {loading && <LoadingSpinner label="Loading dashboard…" />}
+      {loading && (
+        <div className="space-y-5 px-5 pb-4">
+          <div className="space-y-2.5">
+            <Skeleton className="h-[68px] w-full rounded-2xl" />
+            <Skeleton className="h-[68px] w-full rounded-2xl" />
+            <Skeleton className="h-[68px] w-full rounded-2xl" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Skeleton className="h-24 rounded-2xl" />
+            <Skeleton className="h-24 rounded-2xl" />
+          </div>
+          <SkeletonCardList count={3} />
+        </div>
+      )}
 
       {!loading && dashboardError && (
         <EmptyState icon={AlertTriangle} title="Couldn't load the dashboard" description={dashboardError} />
       )}
 
       {!loading && data && (
-        <div className="space-y-5 px-4 pb-4">
-          <div className="flex gap-3 overflow-x-auto no-scrollbar">
+        <div className="space-y-5 px-5 pb-4">
+          <div className="space-y-2.5">
             {data.stores.map((store) => (
               <StoreCard key={store.storeId} store={store} />
             ))}
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-xl border border-elevated bg-surface px-4 py-3.5">
-              <p className="text-xs text-text-muted">Today</p>
-              <p className="mt-1 font-mono text-lg font-bold text-text">{formatINR(data.today.totalSalesInr)}</p>
-              <p className="text-xs text-text-muted">{data.today.totalUnits} units sold</p>
+            <div className="card-surface rounded-2xl px-4 py-4">
+              <p className="text-section-header">Today&apos;s Revenue</p>
+              <p className="text-price mt-2 text-[26px]">{formatINR(data.today.totalSalesInr)}</p>
             </div>
-            <div className="rounded-xl border border-elevated bg-surface px-4 py-3.5">
-              <p className="text-xs text-text-muted">Alerts</p>
-              <p className="mt-1 font-mono text-lg font-bold text-warning">{data.alerts.lowStockCount} low stock</p>
-              <p className="text-xs text-text-muted">{data.alerts.deadStockCount} dead stock items</p>
+            <div className="card-surface rounded-2xl px-4 py-4">
+              <p className="text-section-header">Units Sold</p>
+              <p className="text-price mt-2 text-[26px]">{data.today.totalUnits}</p>
             </div>
           </div>
+
+          {alertParts.length > 0 && (
+            <div className="flex items-center gap-3 rounded-2xl border border-warning/40 bg-warning/10 px-4 py-3.5">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-warning/20 text-warning">
+                {data.alerts.lowStockCount > 0 ? <AlertTriangle className="h-5 w-5" /> : <PackageX className="h-5 w-5" />}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[15px] font-bold text-white">{alertParts.join(' · ')}</p>
+                <p className="text-secondary-body">Check stock before you run out</p>
+              </div>
+            </div>
+          )}
 
           {brief !== undefined && (
             <BriefCard
@@ -124,11 +163,11 @@ export function HomeDashboard({ fullName }: { fullName: string }) {
           )}
 
           <div>
-            <p className="mb-2 text-sm font-semibold text-text">Recent Transactions</p>
+            <p className="text-section-header mb-2.5">Recent Transactions</p>
             {data.recentTransactions.length === 0 ? (
               <EmptyState icon={Receipt} title="No transactions yet" />
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-2.5">
                 {data.recentTransactions.map((t) => (
                   <HistoryItem key={t.id} transaction={t} viewerRole="owner" onOpen={setSelectedTransaction} />
                 ))}

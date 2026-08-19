@@ -7,6 +7,7 @@ import { HistoryItem } from '@/components/history/HistoryItem';
 import { TransactionDetailSheet } from '@/components/history/TransactionDetailSheet';
 import { HistoryFilters, EMPTY_FILTERS, type HistoryFilterState } from '@/components/history/HistoryFilters';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { SkeletonCardList } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useAuth } from '@/lib/hooks/useAuth';
 import type { Transaction } from '@/lib/types/domain';
@@ -52,10 +53,10 @@ export default function HistoryPage() {
     <div>
       <Header title="History" subtitle={user.role === 'staff' ? 'Your transactions' : 'All stores'} />
 
-      <div className="px-4 py-4">
+      <div className="px-5 py-4">
         {user.role !== 'staff' && <HistoryFilters filters={filters} onChange={setFilters} />}
 
-        {loading && <LoadingSpinner label="Loading history…" />}
+        {loading && <SkeletonCardList count={6} />}
 
         {error && !loading && (
           <EmptyState icon={Receipt} title="Couldn't load history" description={error} />
@@ -66,7 +67,7 @@ export default function HistoryPage() {
         )}
 
         {!loading && !error && transactions.length > 0 && (
-          <div className="space-y-2">
+          <div className="space-y-2.5">
             {transactions.map((t) => (
               <HistoryItem key={t.id} transaction={t} viewerRole={user.role} onOpen={setSelected} />
             ))}

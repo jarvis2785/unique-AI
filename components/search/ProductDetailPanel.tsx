@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { stockStatusForQuantity } from '@/lib/types/domain';
 import { formatINR } from '@/lib/utils/format';
 import type { ProductDetail } from '@/lib/types/domain';
@@ -57,19 +57,30 @@ export function ProductDetailPanel({ productId, onClose, onMakePurchase }: Produ
     <div className="fixed inset-0 z-50 flex items-end justify-center">
       <div className="absolute inset-0 bg-black/60 animate-fade-in" onClick={onClose} />
 
-      <div className="relative z-10 max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-t-3xl bg-surface pb-safe-bottom animate-slide-up">
-        <div className="sticky top-0 flex items-center justify-between border-b border-elevated bg-surface px-5 py-4">
+      <div className="card-surface relative z-10 max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-t-[24px] pb-safe-bottom animate-slide-up-panel">
+        <div className="card-surface sticky top-0 flex items-center justify-between px-5 py-4">
           <div className="mx-auto h-1 w-10 rounded-full bg-elevated" />
           <button
             onClick={onClose}
             aria-label="Close"
-            className="absolute right-4 top-3 flex h-tap w-tap items-center justify-center rounded-full text-text-muted hover:text-text"
+            className="absolute right-4 top-3 flex h-tap w-tap items-center justify-center rounded-full text-text-muted transition active:scale-[0.98] hover:text-text"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        {loading && <LoadingSpinner label="Loading product…" />}
+        {loading && (
+          <div className="space-y-4 px-5 pb-6 pt-2">
+            <Skeleton className="h-6 w-2/3" />
+            <Skeleton className="h-4 w-1/3" />
+            <div className="space-y-2 pt-2">
+              <Skeleton className="h-12 w-full rounded-xl" />
+              <Skeleton className="h-12 w-full rounded-xl" />
+              <Skeleton className="h-12 w-full rounded-xl" />
+            </div>
+            <Skeleton className="h-14 w-full rounded-2xl" />
+          </div>
+        )}
 
         {error && !loading && (
           <div className="px-5 py-10 text-center">
@@ -79,29 +90,22 @@ export function ProductDetailPanel({ productId, onClose, onMakePurchase }: Produ
 
         {product && !loading && (
           <div className="px-5 pb-6 pt-2">
-            <h2 className="text-xl font-bold text-text">{product.name}</h2>
-            <p className="mt-1 text-sm text-text-muted">
-              {[product.category, product.variant].filter(Boolean).join(' — ')}
-            </p>
+            <h2 className="text-product-name text-[20px]">{product.name}</h2>
+            <p className="text-secondary-body mt-1">{[product.category, product.variant].filter(Boolean).join(' — ')}</p>
             <p className="mt-1 font-mono text-xs text-text-muted">SKU: {product.skuCode}</p>
 
             <div className="mt-5">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-muted">
-                Stock across stores
-              </p>
+              <p className="text-section-header mb-2.5">Stock across stores</p>
               <div className="space-y-2">
                 {product.storeStock.map((store) => {
                   const status = stockStatusForQuantity(store.quantity, product.lowStockThreshold);
                   return (
-                    <div
-                      key={store.storeId}
-                      className="flex items-center justify-between rounded-lg bg-elevated/50 px-3 py-2.5"
-                    >
-                      <span className="text-sm text-text">{store.storeName}</span>
-                      <span className="flex items-center gap-2">
-                        <span className="font-mono text-sm font-semibold text-text">{store.quantity}</span>
-                        <span className={`h-2.5 w-2.5 rounded-full ${DOT_COLOR[status]}`} />
+                    <div key={store.storeId} className="card-surface flex items-center justify-between rounded-xl px-4 py-3">
+                      <span className="flex items-center gap-2.5 text-[15px] font-medium text-white">
+                        <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${DOT_COLOR[status]}`} />
+                        {store.storeName}
                       </span>
+                      <span className="font-mono text-xl font-extrabold text-white">{store.quantity}</span>
                     </div>
                   );
                 })}
@@ -110,9 +114,7 @@ export function ProductDetailPanel({ productId, onClose, onMakePurchase }: Produ
 
             {product.variants.length > 1 && (
               <div className="mt-5">
-                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-muted">
-                  Variants available
-                </p>
+                <p className="text-section-header mb-2.5">Variants available</p>
                 <div className="flex flex-wrap gap-2">
                   {product.variants.map((v) => (
                     <span
@@ -120,7 +122,7 @@ export function ProductDetailPanel({ productId, onClose, onMakePurchase }: Produ
                       className={`rounded-full border px-3 py-1 text-xs ${
                         v === product.variant
                           ? 'border-primary bg-primary/15 text-primary'
-                          : 'border-elevated text-text-muted'
+                          : 'border-white/10 text-text-muted'
                       }`}
                     >
                       {v}
@@ -130,19 +132,15 @@ export function ProductDetailPanel({ productId, onClose, onMakePurchase }: Produ
               </div>
             )}
 
-            <div className="mt-5 space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-text-muted">Retail Price</span>
-                <span className="font-mono text-lg font-semibold text-text">
-                  {product.retailPrice !== null ? formatINR(product.retailPrice) : 'Not set'}
-                </span>
+            <div className="mt-5 flex gap-3">
+              <div className="card-surface flex-1 rounded-2xl px-4 py-3.5">
+                <p className="text-section-header">Retail</p>
+                <p className="text-price mt-1.5">{product.retailPrice !== null ? formatINR(product.retailPrice) : 'Not set'}</p>
               </div>
               {product.wholesalePrice !== null && (
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-text-muted">Wholesale Price</span>
-                  <span className="font-mono text-lg font-semibold text-text">
-                    {formatINR(product.wholesalePrice)}
-                  </span>
+                <div className="card-surface flex-1 rounded-2xl px-4 py-3.5">
+                  <p className="text-section-header">Wholesale</p>
+                  <p className="text-price mt-1.5">{formatINR(product.wholesalePrice)}</p>
                 </div>
               )}
             </div>
@@ -150,7 +148,9 @@ export function ProductDetailPanel({ productId, onClose, onMakePurchase }: Produ
             <button
               onClick={() => onMakePurchase(product)}
               disabled={purchaseDisabled}
-              className="mt-6 flex h-tap w-full items-center justify-center rounded-xl bg-primary text-base font-semibold text-white transition active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-elevated disabled:text-text-muted"
+              className={`mt-6 flex h-14 w-full items-center justify-center rounded-2xl text-base font-bold text-white transition active:scale-[0.98] disabled:cursor-not-allowed ${
+                purchaseDisabled ? 'bg-elevated text-text-muted' : 'btn-gradient'
+              }`}
             >
               {outOfStockEverywhere ? 'Out of Stock Everywhere' : notPriced ? 'Price Not Set' : 'Make Purchase'}
             </button>

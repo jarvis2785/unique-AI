@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Package, Plus, Trash2 } from 'lucide-react';
 import { ProductForm } from '@/components/manage/ProductForm';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { SkeletonCardList } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useToast } from '@/components/ui/Toast';
 import { useDebounce } from '@/lib/hooks/useDebounce';
@@ -51,15 +51,15 @@ export default function ManageProductsPage() {
 
   return (
     <div>
-      <div className="sticky top-0 z-20 border-b border-elevated bg-background/95 px-4 pb-3 pt-safe-top backdrop-blur safe-top">
-        <div className="flex items-center gap-3 pt-3">
-          <Link href="/manage" className="flex h-10 w-10 items-center justify-center rounded-full text-text-muted active:bg-elevated">
+      <div className="sticky top-0 z-20 border-b border-white/10 bg-background/95 px-5 pb-3 pt-safe-top backdrop-blur safe-top">
+        <div className="flex items-center gap-3 pt-4">
+          <Link href="/manage" className="flex h-10 w-10 items-center justify-center rounded-full text-text-muted transition active:scale-[0.98] active:bg-elevated">
             <ArrowLeft className="h-5 w-5" />
           </Link>
-          <h1 className="text-lg font-bold text-text">Products</h1>
+          <h1 className="text-page-title text-[20px]">Products</h1>
           <button
             onClick={() => setEditing('new')}
-            className="ml-auto flex h-10 items-center gap-1.5 rounded-full bg-primary px-3.5 text-sm font-semibold text-white"
+            className="ml-auto flex h-10 items-center gap-1.5 rounded-full bg-primary px-3.5 text-sm font-semibold text-white transition active:scale-[0.98]"
           >
             <Plus className="h-4 w-4" /> Add
           </button>
@@ -68,28 +68,28 @@ export default function ManageProductsPage() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search products…"
-          className="mt-3 h-11 w-full rounded-xl border border-elevated bg-surface px-3.5 text-sm text-text placeholder:text-text-muted focus:border-primary focus:outline-none"
+          className="mt-3 h-11 w-full rounded-xl border border-white/10 bg-surface px-3.5 text-sm text-text placeholder:text-text-muted focus:border-primary focus:outline-none"
         />
       </div>
 
-      <div className="px-4 py-4">
-        {loading && <LoadingSpinner label="Loading products…" />}
+      <div className="px-5 py-4">
+        {loading && <SkeletonCardList count={6} />}
 
         {!loading && products.length === 0 && (
           <EmptyState icon={Package} title="No products found" description="Try a different search, or add one." />
         )}
 
         {!loading && products.length > 0 && (
-          <div className="space-y-2">
+          <div className="space-y-2.5">
             {products.map((product) => (
-              <div key={product.id} className="rounded-xl border border-elevated bg-surface px-4 py-3">
+              <div key={product.id} className="card-surface rounded-2xl px-4 py-3.5">
                 <div className="flex items-start justify-between gap-3">
                   <button className="min-w-0 flex-1 text-left" onClick={() => setEditing(product)}>
-                    <p className="truncate font-semibold text-text">{product.name}</p>
-                    <p className="truncate text-xs text-text-muted">
+                    <p className="text-product-name break-words">{product.name}</p>
+                    <p className="text-secondary-body mt-0.5">
                       {product.skuCode} {product.category ? `— ${product.category}` : ''}
                     </p>
-                    <p className="mt-1 font-mono text-sm text-text">
+                    <p className="text-price mt-1.5 text-[15px]">
                       {product.retailPrice !== null ? formatINR(product.retailPrice) : 'No price set'}
                     </p>
                   </button>
@@ -97,7 +97,7 @@ export default function ManageProductsPage() {
                     onClick={() => handleDelete(product)}
                     disabled={deletingId === product.id}
                     aria-label="Delete product"
-                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-danger active:bg-danger/10"
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-danger transition active:scale-[0.98] active:bg-danger/10"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>

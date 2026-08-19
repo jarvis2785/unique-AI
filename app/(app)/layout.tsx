@@ -10,7 +10,7 @@ export default async function AppShellLayout({ children }: { children: React.Rea
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-background" style={{ paddingBottom: 'calc(5rem + env(safe-area-inset-bottom))' }}>
       {children}
       <BottomNav role={user.role} />
     </div>

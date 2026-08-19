@@ -28,7 +28,7 @@ export function BottomNav({ role }: { role: UserRole }) {
   const items = role === 'staff' ? STAFF_ITEMS : OWNER_MANAGER_ITEMS;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-elevated bg-surface/95 backdrop-blur safe-bottom">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-white/10 bg-surface/95 backdrop-blur safe-bottom">
       <div className="mx-auto flex max-w-lg items-stretch">
         {items.map((item) => {
           const active = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
@@ -37,7 +37,7 @@ export function BottomNav({ role }: { role: UserRole }) {
             <Link
               key={item.href}
               href={item.href}
-              className="flex flex-1 flex-col items-center justify-center gap-1 py-2.5"
+              className="flex flex-1 flex-col items-center justify-center gap-1 py-2.5 transition active:scale-[0.98]"
               style={{ minHeight: '56px' }}
             >
               <Icon className={`h-6 w-6 ${active ? 'text-primary' : 'text-text-muted'}`} strokeWidth={active ? 2.5 : 2} />

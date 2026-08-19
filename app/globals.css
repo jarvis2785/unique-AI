@@ -14,7 +14,7 @@ body {
 }
 
 body {
-  background-color: #0f172a;
+  background-color: #080f1a;
   color: #f8fafc;
   -webkit-tap-highlight-color: transparent;
 }
@@ -57,5 +57,75 @@ textarea {
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
+  }
+}
+
+/*
+ * Typography system — see the redesign brief: page titles 28/800, section
+ * headers 13/600 uppercase, product names 16/700, secondary text 13/400,
+ * prices 18/800 mono, badges 11/600 uppercase. Defined once here since the
+ * same combos repeat across Home, Search, History, and Manage.
+ */
+@layer components {
+  .text-page-title {
+    @apply text-[28px] font-extrabold leading-tight text-white;
+  }
+  .text-section-header {
+    @apply text-[13px] font-semibold uppercase tracking-[0.1em] text-text-muted;
+  }
+  .text-product-name {
+    @apply text-[16px] font-bold leading-snug text-white;
+  }
+  .text-secondary-body {
+    @apply text-[13px] font-normal text-text-muted;
+  }
+  .text-price {
+    @apply font-mono text-[18px] font-extrabold text-white;
+  }
+  .text-badge {
+    @apply text-[11px] font-semibold uppercase tracking-wide;
+  }
+
+  /* Premium gradient card — the default "surface" treatment everywhere. */
+  .card-surface {
+    background: linear-gradient(135deg, #1a2540, #0f1929);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  /*
+   * Background only, no border shorthand — for cards that need a
+   * per-item colored LEFT accent (border-l-4 border-{status-color}).
+   * Combining that with .card-surface's `border` shorthand would set
+   * border-color on all four sides (CSS border-color is a 4-side
+   * shorthand), bleeding the accent color onto every edge instead of
+   * just the left one.
+   */
+  .card-surface-bg {
+    background: linear-gradient(135deg, #1a2540, #0f1929);
+  }
+
+  /* Indigo/purple gradient accent — AI Brief card, highlighted banners. */
+  .card-accent {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.24), rgba(139, 92, 246, 0.08));
+    border: 1px solid rgba(99, 102, 241, 0.35);
+  }
+
+  .glow-primary {
+    box-shadow:
+      0 0 0 3px rgba(99, 102, 241, 0.18),
+      0 0 24px rgba(99, 102, 241, 0.28);
+  }
+
+  .btn-gradient {
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    box-shadow: 0 10px 24px -8px rgba(99, 102, 241, 0.6);
+  }
+
+  .icon-gradient {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.28), rgba(139, 92, 246, 0.2));
+  }
+
+  .skeleton-block {
+    @apply animate-pulse-slow rounded-lg bg-elevated;
   }
 }

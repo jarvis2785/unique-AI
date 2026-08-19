@@ -32,6 +32,9 @@ export interface SearchResultProduct {
   category: string | null;
   variant: string | null;
   overallStatus: StockStatus;
+  /** How many of `storeCount` stores have any stock at all — the "2/3 stores" pill on the search card. */
+  storesInStock: number;
+  storeCount: number;
 }
 
 export interface ProductDetail extends SearchResultProduct {

@@ -35,6 +35,7 @@ function toStockStatus(value: StockByStoreRow['stock_status']): StockStatus {
 }
 
 function toSearchResult(row: StockByStoreRow): SearchResultProduct {
+  const perStore = [row.stock_retail, row.stock_wholesale, row.stock_shinai];
   return {
     productId: row.product_id,
     skuCode: row.sku_code,
@@ -43,6 +44,8 @@ function toSearchResult(row: StockByStoreRow): SearchResultProduct {
     category: row.category,
     variant: row.variant,
     overallStatus: toStockStatus(row.stock_status),
+    storesInStock: perStore.filter((q) => (q ?? 0) > 0).length,
+    storeCount: perStore.length,
   };
 }
 
@@ -138,6 +141,8 @@ async function toProductDetail(supabase: DB, row: StockByStoreRow, includeWholes
     storeStock,
     variants,
     overallStatus: toStockStatus(row.stock_status),
+    storesInStock: storeStock.filter((s) => s.quantity > 0).length,
+    storeCount: storeStock.length,
   };
 }
 
@@ -210,11 +215,30 @@ async function scoredSearch(supabase: DB, query: string): Promise<StockByStoreRo
 }
 
 /**
+ * DB-only, no Claude round trip — this is the "instant" path. A chunked-ILIKE
+ * scan over 694 rows resolves in well under 100ms, so this alone is fast
+ * enough to be the primary result the user sees; `searchProducts` below is
+ * the slower Claude-assisted upgrade that runs alongside it, not before it.
+ */
+export async function fastSearchProducts(supabase: DB, rawQuery: string): Promise<SearchResultProduct[]> {
+  const trimmed = rawQuery.trim();
+  if (!trimmed) return [];
+  const rows = await scoredSearch(supabase, trimmed);
+  return rows.map(toSearchResult);
+}
+
+/**
  * Search never returns an error to the caller — a blank results screen is
  * never acceptable. Claude expands shorthand ("ss" -> "Samsung") with a hard
  * 3s budget; its output and the raw query both run through the same scored
  * matcher, so a Claude failure only loses the shorthand expansion, not the
  * search itself.
+ *
+ * This is the slow, Claude-assisted path. The search page calls
+ * `fastSearchProducts` first for instant results and fires this in parallel
+ * to silently upgrade them — never awaited before showing something on
+ * screen. See PROBLEM 1 in the redesign brief for why: awaiting this before
+ * any DB query made every keystroke pay for a full Claude round trip.
  */
 export async function searchProducts(supabase: DB, rawQuery: string): Promise<SearchResultProduct[]> {
   const trimmed = rawQuery.trim();

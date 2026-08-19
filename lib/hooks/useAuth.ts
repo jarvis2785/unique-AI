@@ -18,11 +18,18 @@ export function useAuth(): UseAuthResult {
   const supabase = createClient();
 
   const loadProfile = useCallback(async () => {
+    // getSession() reads the session from local storage/cookies — no
+    // network call, unlike getUser() which always revalidates against
+    // Supabase's Auth server. Safe here for the same reason it's safe
+    // server-side: the profiles fetch right below is the real
+    // authorization boundary, going through RLS + JWT verification at
+    // the Postgres layer regardless of what a stale/tampered session
+    // claims locally.
     const {
-      data: { user: authUser },
-    } = await supabase.auth.getUser();
+      data: { session },
+    } = await supabase.auth.getSession();
 
-    if (!authUser) {
+    if (!session?.user) {
       setUser(null);
       setLoading(false);
       return;
@@ -31,7 +38,7 @@ export function useAuth(): UseAuthResult {
     const { data: profile } = await supabase
       .from('profiles')
       .select('id, full_name, role, store_id, is_active')
-      .eq('id', authUser.id)
+      .eq('id', session.user.id)
       .single();
 
     if (!profile || !profile.is_active) {

@@ -5,12 +5,11 @@ import { listStores } from '@/lib/data/stores';
 import { Errors } from '@/lib/utils/api';
 
 export async function GET() {
-  const user = await getAuthedUser();
-  if (!user) return Errors.unauthenticated();
+  const supabase = createClient();
 
   try {
-    const supabase = createClient();
-    const stores = await listStores(supabase);
+    const [user, stores] = await Promise.all([getAuthedUser(), listStores(supabase)]);
+    if (!user) return Errors.unauthenticated();
     return NextResponse.json({ stores });
   } catch (err) {
     console.error('[stores GET] failed:', err);

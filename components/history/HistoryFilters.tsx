@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { Filter, X } from 'lucide-react';
 import { useDebounce } from '@/lib/hooks/useDebounce';
+import { createClient } from '@/lib/supabase/client';
+import { fastSearchProducts } from '@/lib/data/searchShared';
 import type { SearchResultProduct, Store } from '@/lib/types/domain';
 
 export interface HistoryFilterState {
@@ -35,6 +37,7 @@ export function HistoryFilters({
   filters: HistoryFilterState;
   onChange: (filters: HistoryFilterState) => void;
 }) {
+  const [supabase] = useState(() => createClient());
   const [open, setOpen] = useState(false);
   const [stores, setStores] = useState<Store[]>([]);
   const [staff, setStaff] = useState<StaffOption[]>([]);
@@ -59,12 +62,11 @@ export function HistoryFilters({
       setProductOptions([]);
       return;
     }
-    fetch(`/api/search?q=${encodeURIComponent(trimmed)}&fast=1`)
-      .then((res) => res.json())
-      .then((data) => setProductOptions(data.results ?? []))
+    fastSearchProducts(supabase, trimmed)
+      .then((results) => setProductOptions(results))
       .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedProductQuery]);
+  }, [debouncedProductQuery, supabase]);
 
   const activeCount = [filters.storeId, filters.staffId, filters.productId, filters.dateFrom, filters.dateTo].filter(
     Boolean

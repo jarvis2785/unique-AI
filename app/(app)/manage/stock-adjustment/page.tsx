@@ -7,10 +7,13 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { SkeletonCardList } from '@/components/ui/Skeleton';
 import { useToast } from '@/components/ui/Toast';
 import { useDebounce } from '@/lib/hooks/useDebounce';
+import { createClient } from '@/lib/supabase/client';
+import { fastSearchProducts } from '@/lib/data/searchShared';
 import type { ProductDetail, SearchResultProduct } from '@/lib/types/domain';
 
 export default function StockAdjustmentPage() {
   const { showToast } = useToast();
+  const [supabase] = useState(() => createClient());
   const [query, setQuery] = useState('');
   const debouncedQuery = useDebounce(query, 400);
   const [options, setOptions] = useState<SearchResultProduct[]>([]);
@@ -25,11 +28,10 @@ export default function StockAdjustmentPage() {
       setOptions([]);
       return;
     }
-    fetch(`/api/search?q=${encodeURIComponent(trimmed)}&fast=1`)
-      .then((res) => res.json())
-      .then((data) => setOptions(data.results ?? []))
+    fastSearchProducts(supabase, trimmed)
+      .then((results) => setOptions(results))
       .catch(() => setOptions([]));
-  }, [debouncedQuery]);
+  }, [debouncedQuery, supabase]);
 
   async function selectProduct(productId: string) {
     setLoadingDetail(true);

@@ -9,14 +9,13 @@ import type { UserRole } from '@/lib/types/domain';
 const VALID_ROLES: UserRole[] = ['owner', 'manager', 'staff'];
 
 export async function GET() {
-  const user = await getAuthedUser();
-  if (!user) return Errors.unauthenticated();
-  // Manager can view staff to filter History, but only the owner manages accounts (POST/PATCH below).
-  if (user.role === 'staff') return Errors.forbidden();
+  const supabase = createClient();
 
   try {
-    const supabase = createClient();
-    const staff = await listStaff(supabase);
+    // Manager can view staff to filter History, but only the owner manages accounts (POST/PATCH below).
+    const [user, staff] = await Promise.all([getAuthedUser(), listStaff(supabase)]);
+    if (!user) return Errors.unauthenticated();
+    if (user.role === 'staff') return Errors.forbidden();
     return NextResponse.json({ staff });
   } catch (err) {
     console.error('[staff GET] failed:', err);

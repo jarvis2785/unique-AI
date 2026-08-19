@@ -5,13 +5,12 @@ import { getTodayBrief } from '@/lib/data/brief';
 import { Errors } from '@/lib/utils/api';
 
 export async function GET() {
-  const user = await getAuthedUser();
-  if (!user) return Errors.unauthenticated();
-  if (user.role === 'staff') return Errors.forbidden();
+  const supabase = createClient();
 
   try {
-    const supabase = createClient();
-    const brief = await getTodayBrief(supabase);
+    const [user, brief] = await Promise.all([getAuthedUser(), getTodayBrief(supabase)]);
+    if (!user) return Errors.unauthenticated();
+    if (user.role === 'staff') return Errors.forbidden();
     return NextResponse.json({ brief });
   } catch (err) {
     console.error('[brief/today GET] failed:', err);

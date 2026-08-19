@@ -5,15 +5,13 @@ import { deleteProduct, getProductDetailById, updateProduct, type ProductInput }
 import { Errors } from '@/lib/utils/api';
 
 export async function GET(_request: NextRequest, { params }: { params: { id: string } }) {
-  const user = await getAuthedUser();
-  if (!user) return Errors.unauthenticated();
-
-  const includeWholesale = user.role !== 'staff';
+  const supabase = createClient();
 
   try {
-    const supabase = createClient();
-    const product = await getProductDetailById(supabase, params.id, includeWholesale);
+    const [user, product] = await Promise.all([getAuthedUser(), getProductDetailById(supabase, params.id, true)]);
+    if (!user) return Errors.unauthenticated();
     if (!product) return Errors.notFound('Product not found.');
+    if (user.role === 'staff') product.wholesalePrice = null;
     return NextResponse.json({ product });
   } catch (err) {
     console.error('[products/[id] GET] failed:', err);

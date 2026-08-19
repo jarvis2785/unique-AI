@@ -5,15 +5,13 @@ import { createProduct, listProductsForManage, type ProductInput } from '@/lib/d
 import { Errors } from '@/lib/utils/api';
 
 export async function GET(request: NextRequest) {
-  const user = await getAuthedUser();
-  if (!user) return Errors.unauthenticated();
-  if (user.role === 'staff') return Errors.forbidden();
-
   const q = request.nextUrl.searchParams.get('q') ?? '';
+  const supabase = createClient();
 
   try {
-    const supabase = createClient();
-    const products = await listProductsForManage(supabase, q);
+    const [user, products] = await Promise.all([getAuthedUser(), listProductsForManage(supabase, q)]);
+    if (!user) return Errors.unauthenticated();
+    if (user.role === 'staff') return Errors.forbidden();
     return NextResponse.json({ products });
   } catch (err) {
     console.error('[products GET] failed:', err);

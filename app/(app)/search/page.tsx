@@ -14,12 +14,15 @@ import { useToast } from '@/components/ui/Toast';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useDebounce } from '@/lib/hooks/useDebounce';
 import { useRecentSearches } from '@/lib/hooks/useRecentSearches';
+import { createClient } from '@/lib/supabase/client';
+import { fastSearchProducts } from '@/lib/data/searchShared';
 import type { ProductDetail, SearchResultProduct } from '@/lib/types/domain';
 
 export default function SearchPage() {
   const { user, signOut } = useAuth();
   const { showToast } = useToast();
   const { recent, addRecent } = useRecentSearches();
+  const [supabase] = useState(() => createClient());
 
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResultProduct[]>([]);
@@ -57,14 +60,15 @@ export default function SearchPage() {
       if (requestIdRef.current === requestId) setSearching(false);
     }, 200);
 
-    // Instant path: DB-only, no Claude round trip. This is what the user
-    // actually sees — resolves in well under 200ms on this catalog size.
-    fetch(`/api/search?q=${encodeURIComponent(trimmed)}&fast=1`)
-      .then((res) => res.json())
-      .then((data) => {
+    // Instant path: straight from the browser to Supabase, no Next.js API
+    // route in between — Phone -> Supabase -> Phone instead of Phone ->
+    // Vercel -> Supabase -> Vercel -> Phone. Same RLS as the server path
+    // (same anon key + session), just one hop each way instead of two.
+    fastSearchProducts(supabase, trimmed)
+      .then((results) => {
         if (requestIdRef.current !== requestId) return;
         clearTimeout(spinnerCap);
-        setResults(data.results ?? []);
+        setResults(results);
         setHasSearched(true);
         setSearching(false);
       })
@@ -77,8 +81,10 @@ export default function SearchPage() {
       });
 
     // Background upgrade: Claude-assisted shorthand expansion ("ss a54" ->
-    // "Samsung A54"). Silently replaces results if it finds a better match —
-    // never shown as a loading state, never blocks the instant path above.
+    // "Samsung A54"), still the one path that has to go through the server
+    // (needs the Anthropic API key). Silently replaces results if it finds
+    // a better match — never shown as a loading state, never blocks the
+    // instant path above.
     fetch(`/api/search?q=${encodeURIComponent(trimmed)}`)
       .then((res) => res.json())
       .then((data) => {
@@ -89,7 +95,7 @@ export default function SearchPage() {
       .catch(() => {});
 
     return () => clearTimeout(spinnerCap);
-  }, [debouncedQuery, addRecent]);
+  }, [debouncedQuery, addRecent, supabase]);
 
   const handleBarcodeDetected = useCallback(
     async (code: string) => {

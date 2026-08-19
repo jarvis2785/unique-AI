@@ -26,21 +26,29 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
+  // getSession() reads the JWT from cookies locally — no network call,
+  // unlike getUser() which always revalidates against Supabase's Auth
+  // server. Safe here for the same reason it's safe in getAuthedUser():
+  // middleware only makes a UX-layer redirect decision, never a data
+  // authorization decision. Anything this lets through still hits the
+  // page's own getAuthedUser() call, which does a real RLS-gated profiles
+  // fetch — a forged or stale session fails there for real, redirecting to
+  // /login anyway. Middleware is a fast path, not the security boundary.
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
 
   const pathname = request.nextUrl.pathname;
   const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
 
-  if (!user && !isPublic) {
+  if (!session?.user && !isPublic) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     url.searchParams.set('next', pathname);
     return NextResponse.redirect(url);
   }
 
-  if (user && pathname === '/login') {
+  if (session?.user && pathname === '/login') {
     const url = request.nextUrl.clone();
     url.pathname = '/';
     return NextResponse.redirect(url);
